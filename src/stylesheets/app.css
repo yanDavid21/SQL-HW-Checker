@@ -40,6 +40,7 @@
     color:grey;
     flex-grow:1;
     overflow:auto;
+    padding:1em;
 }
 
 .main-body {
@@ -53,12 +54,20 @@
 }
 
 .results > * {
-    margin-right:2em;
+    margin:1em;
 }
 
 .sql-diff{
-
+    background-color:white;
+    padding:1em;
+    width:100%;
+    color:black;
+    border-width:1px;
+    border-style:solid;
+    border-color:black;
 }
+
+
 
 .form-group {
     display:flex;

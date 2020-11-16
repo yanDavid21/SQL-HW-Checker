@@ -5,18 +5,23 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import React from 'react';
 import Spinner from 'react-bootstrap/Spinner';
 import Button from 'react-bootstrap/Button';
+import Modal from 'react-bootstrap/Modal'
+import SqliteDiffResult from './sqliteDiffResult.js'
 
 export default class Body extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            alert: false,
+            alertMessage: "",
             loading: false,
             sqlFile: null,
             csvFile: null,
             queryResults: [{ header: "pee" }, { header: "hey" }],
-            csvResults: []
+            csvResults: [],
+            sqliteDiffResult: "result"
         }
-        const serverAddress = 'http://localhost:8080/';
+        this.serverAddress = 'http://localhost:8080/';
         this.uploadFile = this.uploadFile.bind(this);
         this.submiteButton = this.submitButton.bind(this);
         this.communicateWithBackEnd = this.submitButton.bind(this);
@@ -35,12 +40,18 @@ export default class Body extends React.Component {
                 this.setState(state => ({
                     csvFile: file,
                 }));
-                
+
             } else {
-                alert("Please input only sql and csv files in the correct slot! Thank you. :)")
+                this.setState(state => ({
+                    alertMessage: "Please input only sql and csv files in the correct slot! Thank you. :)",
+                    alert:true
+                }))
             }
         } catch (err) {
-            alert("Please input only sql and csv files in the correct slot! Thank you. :)")
+            this.setState(state => ({
+                alertMessage: "Please input only sql and csv files in the correct slot! Thank you. :)",
+                alert:true
+            }))
         }
     }
 
@@ -67,7 +78,10 @@ export default class Body extends React.Component {
             }
             */
         }).catch(err => {
-            alert("Oops! There appears to be some trouble communicating with the server. Please check your connection and try again.");
+            this.setState(state => ({
+                alertMessage: "There appears to be some trouble communicating with the server. Please check your connection and try again.",
+                alert:true
+            }))
         })
     }
 
@@ -76,14 +90,27 @@ export default class Body extends React.Component {
             this.communicateWithBackEnd('text/plain', this.state.sqlFile);
             this.communicateWithBackEnd('text/csv', this.state.csvFile);
         } else {
-            alert("Are you sure you have both .sql and .csv files in the correct place?");
+            this.setState(state => ({
+                alertMessage: "Are you sure you have both .sql and .csv files in the correct place?",
+                alert:true
+            }))
         }
     }
 
     render() {
-        let content = this.state.loading ? <Spinner animation="border" /> : <div></div>
+        let content = this.state.loading ? <Spinner animation="border" /> : <SqliteDiffResult content ={this.state.sqliteDiffResult}></SqliteDiffResult>
         return (
             <div className="main-body">
+                <Modal show={this.state.alert} onHide={() => { this.setState(state => ({ alert: false })) }} animation={true}>
+                    <Modal.Header closeButton>
+                        <Modal.Title>Oops!</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>{this.state.alertMessage}</Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="primary" onClick={() => { this.setState(state => ({ alert: false })) }}>
+                            Close </Button>
+                    </Modal.Footer>
+                </Modal>
                 <div className="left-panel">
                     <Form>
                         <Form.Group className="form-group">
@@ -98,9 +125,7 @@ export default class Body extends React.Component {
                         <ResultComponent name="Query results" results={this.state.queryResults} />
                         <ResultComponent name="CSV results" results={this.state.csvResults} />
                     </div>
-                    <div className="sql-diff">
-                        {content}
-                    </div>
+                    {content}
                 </div>
             </div>
         );

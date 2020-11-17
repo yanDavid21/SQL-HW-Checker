@@ -17,9 +17,9 @@ export default class Body extends React.Component {
             loading: false,
             sqlFile: null,
             csvFile: null,
-            queryResults: [{ header: "pee" }, { header: "hey" }],
+            queryResults: [{ "sample-header": 1 , "header-2": "David Yan"}, { "sample-header": 2, "header-2": "Saahil Kumar"}],
             csvResults: [],
-            sqliteDiffResult: "result"
+            sqliteDiffResult: ""
         }
         this.serverAddress = 'http://localhost:8080/';
         this.uploadFile = this.uploadFile.bind(this);
@@ -139,8 +139,8 @@ export default class Body extends React.Component {
                 </div>
                 <div className="right-panel">
                     <div className="results">
-                        <ResultComponent name="Query results" results={this.state.queryResults} />
-                        <ResultComponent name="CSV results" results={this.state.csvResults} />
+                        <ResultComponent id="#query-results" name="Query results" results={this.state.queryResults} />
+                        <ResultComponent id= "csv-results" name="CSV results" results={this.state.csvResults} />
                     </div>
                     {content}
                 </div>

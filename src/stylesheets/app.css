@@ -51,10 +51,15 @@
 .results {
     display:flex;
     flex-direction: row;
+    width:100%;
 }
 
-.results > * {
-    margin:1em;
+#query-results {
+    margin-right:1em;
+}
+
+#csv-results {
+    margin-left:1em;
 }
 
 .sql-diff{
@@ -65,6 +70,7 @@
     border-width:1px;
     border-style:solid;
     border-color:black;
+    height:100%;
 }
 
 

@@ -38,7 +38,7 @@ export default function resultComponent(props) {
     }
 
     return (
-        <div className="table">
+        <div className="table" id={props.id}>
             <h2>{props.name}</h2>
             <Table striped bordered hover responsive>
                 <thead>

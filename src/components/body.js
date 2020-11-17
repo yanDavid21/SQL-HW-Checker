@@ -1,25 +1,55 @@
 import '../stylesheets/app.css';
-import Form from 'react-bootstrap/Form';
+import { withStyles } from '@material-ui/core/styles';
 import ResultComponent from './resultComponent.js'
-import 'bootstrap/dist/css/bootstrap.min.css';
 import React from 'react';
-import Spinner from 'react-bootstrap/Spinner';
-import Button from 'react-bootstrap/Button';
-import Modal from 'react-bootstrap/Modal'
-import SqliteDiffResult from './sqliteDiffResult.js'
+import Button from '@material-ui/core/Button';
+import CloudUploadIcon from '@material-ui/icons/CloudUpload';
+import Modal from '@material-ui/core/Modal';
+import SqliteDiffResult from './sqliteDiffResult.js';
+import Divider from '@material-ui/core/Divider';
+import csvToTable from '../javascripts/csvFileToTable.js';
 
-export default class Body extends React.Component {
+
+const useStyles = theme => ({
+    root: {
+        '& > *': {
+            margin: theme.spacing(1),
+        },
+    },
+    input: {
+        display: 'none',
+    },
+    color: {
+        color: "white",
+        "background-color": "rgb(44, 161, 40)",
+    },
+    paper: {
+        position: 'absolute',
+        width: 400,
+        backgroundColor: theme.palette.background.paper,
+        border: '2px solid #000',
+        boxShadow: theme.shadows[5],
+        padding: theme.spacing(2, 4, 3),
+        transform: `translate(50%, 50%)`,
+    },
+});
+
+class Body extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
             alert: false,
             alertMessage: "",
+            sqlLoading: false,
+            csvLoading: false,
             loading: false,
             sqlFile: null,
             csvFile: null,
-            queryResults: [{ "sample-header": 1 , "header-2": "David Yan"}, { "sample-header": 2, "header-2": "Saahil Kumar"}],
+            queryResults: [{ "sample-header": 1, "header-2": "David Yan" }, { "sample-header": 2, "header-2": "Saahil Kumar" }],
             csvResults: [],
-            sqliteDiffResult: ""
+            sqliteDiffResult: "",
+            sqlFileName: "No file selected",
+            csvFileName: "No file selected"
         }
         this.serverAddress = 'http://localhost:8080/';
         this.uploadFile = this.uploadFile.bind(this);
@@ -32,26 +62,49 @@ export default class Body extends React.Component {
             let target = e.target;
             let file = target.files[0];
             let extension = file.name.split('.').pop();
+
             if (extension === "sql" && string === ".sql") {
                 this.setState(state => ({
                     sqlFile: file,
+                    sqlLoading:true,
+                    sqlFileName: file.name
                 }))
                 this.communicateWithBackEnd('text/plain', this.state.sqlFile);
             } else if (extension === "csv" && string === ".csv") {
                 this.setState(state => ({
                     csvFile: file,
+                    csvLoading:true,
+                    csvFileName: file.name
                 }));
-                this.communicateWithBackEnd('text/csv', this.state.csvFile);
+                csvToTable(file).then(output => {
+                    this.setState(state => ({
+                        csvLoading: false,
+                        csvResults: output
+                    }))
+                }).catch(err => {
+                    this.setState(state => ({
+                        alertMessage: err.toString(),
+                        alert: true
+                    }))
+                })
             } else {
-                this.setState(state => ({
-                    alertMessage: "Please input only sql and csv files in the correct slot! Thank you. :)",
-                    alert:true
-                }))
+                if (string === ".csv") {
+                    this.setState(state => ({
+                        csvFile: null,
+                        csvFileName: "No file selected"
+                    }))
+                } else if (string === ".sql") {
+                    this.setState(state => ({
+                        sqlFile: null,
+                        sqlFileName: "No file selected"
+                    }))
+                }
+                throw Error('Please input only sql and csv files in the correct slot! Thank you. :)');
             }
         } catch (err) {
             this.setState(state => ({
-                alertMessage: "Please input only sql and csv files in the correct slot! Thank you. :)",
-                alert:true
+                alertMessage: err.toString(),
+                alert: true
             }))
         }
     }
@@ -81,14 +134,19 @@ export default class Body extends React.Component {
         }).catch(err => {
             this.setState(state => ({
                 alertMessage: "There appears to be some trouble communicating with the server. Please check your connection and try again.",
-                alert:true
+                alert: true
             }))
         })
     }
 
     submitButton() {
-        if (this.state.sqlFile != null && this.state.csvFile != null) {
-            fetch(this.serverAddress+"/submit", {
+        let validSQL = !(this.state.queryResults === undefined || this.state.queryResults.length === 0);
+        let validCSV = !(this.state.csvResults === undefined || this.state.csvResults.length === 0);
+        if (validSQL && validCSV) {
+            this.setState(state => ({
+                loading: true
+            }))
+            fetch(this.serverAddress + "/submit", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -98,53 +156,99 @@ export default class Body extends React.Component {
                 return response.json();
             }).then(data => {
                 this.setState(state => ({
-                    sqliteDiffResult: data
+                    sqliteDiffResult: data,
+                    loading:false
                 }));
             }).catch(err => {
                 this.setState(state => ({
                     alertMessage: "There seemed to be an error on the server comparing your query to the csv.",
-                    alert:true
+                    alert: true
                 }))
             })
         } else {
             this.setState(state => ({
-                alertMessage: "Are you sure you have both .sql and .csv files in the correct place?",
-                alert:true
+                alertMessage: "Are you sure you have uploaded both .sql and .csv files in the correct place?",
+                alert: true
             }))
         }
     }
 
     render() {
-        let content = this.state.loading ? <Spinner animation="border" /> : <SqliteDiffResult content ={this.state.sqliteDiffResult}></SqliteDiffResult>
+        const { classes } = this.props;
         return (
             <div className="main-body">
-                <Modal show={this.state.alert} onHide={() => { this.setState(state => ({ alert: false })) }} animation={true}>
-                    <Modal.Header closeButton>
-                        <Modal.Title>Oops!</Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body>{this.state.alertMessage}</Modal.Body>
-                    <Modal.Footer>
-                        <Button variant="primary" onClick={() => { this.setState(state => ({ alert: false })) }}>
+                <Modal
+                    open={this.state.alert}
+                    onClose={() => { this.setState(state => ({ alert: false })) }}
+                    aria-labelledby="simple-modal-title"
+                    aria-describedby="simple-modal-description">
+                    <div className={classes.paper}>
+                        <h2 id="simple-modal-title">Oops!</h2>
+                        <Divider/>
+                        <p id="simple-modal-description">
+                        {this.state.alertMessage} </p>
+                        <Button variant="contained" className={classes.color} onClick={() => { this.setState(state => ({ alert: false })) }}>
                             Close </Button>
-                    </Modal.Footer>
+                    </div>
                 </Modal>
                 <div className="left-panel">
-                    <Form>
-                        <Form.Group className="form-group">
-                            <Form.File id="sql-input" label="Input your .sql file here." onChange={(e) => this.uploadFile(e, ".sql")} />
-                            <Form.File id="csv-input" label="Input your .csv file here." onChange={(e) => this.uploadFile(e, ".csv")} />
-                        </Form.Group>
-                    </Form>
-                    <Button variant="success" onClick={this.submitButton}>Compare</Button>
+                    <div className="form-group">
+
+                        <h5>Input your .sql file please </h5>
+                        <input
+                            className={classes.input}
+                            id="sql-button"
+                            multiple
+                            type="file"
+                            onChange={(e) => this.uploadFile(e, ".sql")}
+                        />
+                        <label htmlFor="sql-button">
+                            <Button
+                                variant="contained"
+                                color="default"
+                                className={classes.button}
+                                component="span"
+                                startIcon={<CloudUploadIcon />}>
+                                Upload
+                        </Button>
+                        </label>
+                        <p>{this.state.sqlFileName}</p>
+
+                        <Divider/>
+                        <h5>Input your .csv file please </h5>
+                        <input
+                            className={classes.input}
+                            id="csv-button"
+                            multiple
+                            type="file"
+                            onChange={(e) => this.uploadFile(e, ".csv")}
+                        />
+                        <label htmlFor="csv-button">
+                            <Button
+                                variant="contained"
+                                color="default"
+                                className={classes.button}
+                                component="span"
+                                startIcon={<CloudUploadIcon />}>
+                                Upload
+                            </Button>
+                        </label>
+                        <p>{this.state.csvFileName}</p>
+                    </div>
+                    <Button variant="contained" className={classes.color} onClick={this.submitButton}>
+                        Compare
+                    </Button>
                 </div>
                 <div className="right-panel">
                     <div className="results">
-                        <ResultComponent id="#query-results" name="Query results" results={this.state.queryResults} />
-                        <ResultComponent id= "csv-results" name="CSV results" results={this.state.csvResults} />
+                        <ResultComponent id="#query-results" name="Query results" results={this.state.queryResults} loading={this.state.sqlLoading}/>
+                        <ResultComponent id="csv-results" name="CSV results" results={this.state.csvResults} loading={this.state.csvLoading}/>
                     </div>
-                    {content}
+                    <SqliteDiffResult content={this.state.sqliteDiffResult} loading={this.state.loading}></SqliteDiffResult>
                 </div>
             </div>
         );
     };
 }
+
+export default withStyles(useStyles)(Body);

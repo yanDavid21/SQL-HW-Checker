@@ -23,8 +23,8 @@ export default class Body extends React.Component {
         }
         this.serverAddress = 'http://localhost:8080/';
         this.uploadFile = this.uploadFile.bind(this);
-        this.submiteButton = this.submitButton.bind(this);
-        this.communicateWithBackEnd = this.submitButton.bind(this);
+        this.submitButton = this.submitButton.bind(this);
+        this.communicateWithBackEnd = this.communicateWithBackEnd.bind(this);
     }
 
     uploadFile(e, string) {
@@ -36,11 +36,12 @@ export default class Body extends React.Component {
                 this.setState(state => ({
                     sqlFile: file,
                 }))
+                this.communicateWithBackEnd('text/plain', this.state.sqlFile);
             } else if (extension === "csv" && string === ".csv") {
                 this.setState(state => ({
                     csvFile: file,
                 }));
-
+                this.communicateWithBackEnd('text/csv', this.state.csvFile);
             } else {
                 this.setState(state => ({
                     alertMessage: "Please input only sql and csv files in the correct slot! Thank you. :)",
@@ -87,8 +88,24 @@ export default class Body extends React.Component {
 
     submitButton() {
         if (this.state.sqlFile != null && this.state.csvFile != null) {
-            this.communicateWithBackEnd('text/plain', this.state.sqlFile);
-            this.communicateWithBackEnd('text/csv', this.state.csvFile);
+            fetch(this.serverAddress+"/submit", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify([this.state.queryResults, this.state.csvResults])
+            }).then(response => {
+                return response.json();
+            }).then(data => {
+                this.setState(state => ({
+                    sqliteDiffResult: data
+                }));
+            }).catch(err => {
+                this.setState(state => ({
+                    alertMessage: "There seemed to be an error on the server comparing your query to the csv.",
+                    alert:true
+                }))
+            })
         } else {
             this.setState(state => ({
                 alertMessage: "Are you sure you have both .sql and .csv files in the correct place?",
@@ -118,7 +135,7 @@ export default class Body extends React.Component {
                             <Form.File id="csv-input" label="Input your .csv file here." onChange={(e) => this.uploadFile(e, ".csv")} />
                         </Form.Group>
                     </Form>
-                    <Button variant="success" onClick={this.submiteButton}>Compare</Button>
+                    <Button variant="success" onClick={this.submitButton}>Compare</Button>
                 </div>
                 <div className="right-panel">
                     <div className="results">

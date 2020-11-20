@@ -1,6 +1,5 @@
 const parse = require('csv-parse')
 
-
 export default function parseCSV(file) {
     const csvPromise = new Promise((resolve, reject) => {
         let reader = new FileReader();

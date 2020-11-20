@@ -8,7 +8,7 @@ import Modal from '@material-ui/core/Modal';
 import SqliteDiffResult from './sqliteDiffResult.js';
 import Divider from '@material-ui/core/Divider';
 import csvToTable from '../javascripts/csvFileToTable.js';
-
+import communicateWithBackEnd from '../javascripts/sqlFileToTable.js';
 
 const useStyles = theme => ({
     root: {
@@ -54,7 +54,6 @@ class Body extends React.Component {
         this.serverAddress = 'http://localhost:8080/';
         this.uploadFile = this.uploadFile.bind(this);
         this.submitButton = this.submitButton.bind(this);
-        this.communicateWithBackEnd = this.communicateWithBackEnd.bind(this);
     }
 
     uploadFile(e, string) {
@@ -66,14 +65,26 @@ class Body extends React.Component {
             if (extension === "sql" && string === ".sql") {
                 this.setState(state => ({
                     sqlFile: file,
-                    sqlLoading:true,
+                    sqlLoading: true,
                     sqlFileName: file.name
                 }))
-                this.communicateWithBackEnd('text/plain', this.state.sqlFile);
+                //make read only requests to sqlite database
+                communicateWithBackEnd(this.serverAddress, file)
+                .then(response => {
+                    this.setState(state => ({
+                        sqlLoading: false,
+                        queryResults: response,
+                    }))
+                }).catch(err => {
+                    this.setState(state => ({
+                        alertMessage: err.toString(),
+                        alert: true
+                    }))
+                })
             } else if (extension === "csv" && string === ".csv") {
                 this.setState(state => ({
                     csvFile: file,
-                    csvLoading:true,
+                    csvLoading: true,
                     csvFileName: file.name
                 }));
                 csvToTable(file).then(output => {
@@ -109,36 +120,6 @@ class Body extends React.Component {
         }
     }
 
-    communicateWithBackEnd(contentType, file) {
-        fetch(this.serverAddress, {
-            method: 'POST',
-            headers: {
-                'Content-Type': contentType
-            },
-            body: file
-        }).then(response => {
-            console.log(file);
-            //return response.json();
-        }).then(data => {
-            /*
-            if(contentType === 'text/plain') {
-                this.setState(state => ({
-                    sqlFile: data
-                }))
-            } else {
-                this.setState(state => ({
-                    sqlFile: data
-                }))
-            }
-            */
-        }).catch(err => {
-            this.setState(state => ({
-                alertMessage: "There appears to be some trouble communicating with the server. Please check your connection and try again.",
-                alert: true
-            }))
-        })
-    }
-
     submitButton() {
         let validSQL = !(this.state.queryResults === undefined || this.state.queryResults.length === 0);
         let validCSV = !(this.state.csvResults === undefined || this.state.csvResults.length === 0);
@@ -146,25 +127,7 @@ class Body extends React.Component {
             this.setState(state => ({
                 loading: true
             }))
-            fetch(this.serverAddress + "/submit", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify([this.state.queryResults, this.state.csvResults])
-            }).then(response => {
-                return response.json();
-            }).then(data => {
-                this.setState(state => ({
-                    sqliteDiffResult: data,
-                    loading:false
-                }));
-            }).catch(err => {
-                this.setState(state => ({
-                    alertMessage: "There seemed to be an error on the server comparing your query to the csv.",
-                    alert: true
-                }))
-            })
+           //compare results
         } else {
             this.setState(state => ({
                 alertMessage: "Are you sure you have uploaded both .sql and .csv files in the correct place?",
@@ -184,9 +147,9 @@ class Body extends React.Component {
                     aria-describedby="simple-modal-description">
                     <div className={classes.paper}>
                         <h2 id="simple-modal-title">Oops!</h2>
-                        <Divider/>
+                        <Divider />
                         <p id="simple-modal-description">
-                        {this.state.alertMessage} </p>
+                            {this.state.alertMessage} </p>
                         <Button variant="contained" className={classes.color} onClick={() => { this.setState(state => ({ alert: false })) }}>
                             Close </Button>
                     </div>
@@ -214,7 +177,7 @@ class Body extends React.Component {
                         </label>
                         <p>{this.state.sqlFileName}</p>
 
-                        <Divider/>
+                        <Divider />
                         <h5>Input your .csv file please </h5>
                         <input
                             className={classes.input}
@@ -241,8 +204,8 @@ class Body extends React.Component {
                 </div>
                 <div className="right-panel">
                     <div className="results">
-                        <ResultComponent id="#query-results" name="Query results" results={this.state.queryResults} loading={this.state.sqlLoading}/>
-                        <ResultComponent id="csv-results" name="CSV results" results={this.state.csvResults} loading={this.state.csvLoading}/>
+                        <ResultComponent id="#query-results" name="Query results" results={this.state.queryResults} loading={this.state.sqlLoading} />
+                        <ResultComponent id="csv-results" name="CSV results" results={this.state.csvResults} loading={this.state.csvLoading} />
                     </div>
                     <SqliteDiffResult content={this.state.sqliteDiffResult} loading={this.state.loading}></SqliteDiffResult>
                 </div>

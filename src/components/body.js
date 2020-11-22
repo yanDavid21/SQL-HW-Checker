@@ -10,6 +10,7 @@ import Divider from '@material-ui/core/Divider';
 import csvToTable from '../javascripts/csvFileToTable.js';
 import communicateWithBackEnd from '../javascripts/sqlFileToTable.js';
 
+//styles used for the material UI components
 const useStyles = theme => ({
     root: {
         '& > *': {
@@ -34,46 +35,53 @@ const useStyles = theme => ({
     },
 });
 
+//React component that holds the main content : results tables, sqlitediff results, and input buttons
+//This component maintains the state of its children such as the current files stored and its results, state of the alert etc.
 class Body extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            alert: false,
+            alert: false, //whether the alert should be shown
             alertMessage: "",
-            sqlLoading: false,
+            sqlLoading: false, 
             csvLoading: false,
-            loading: false,
+            loading: false, //this and previous two states determine whether the boxes need a loading animation
             sqlFile: null,
-            csvFile: null,
+            csvFile: null, // the sql and csv files that are currently uploaded (in memory)
             queryResults: [],
-            csvResults: [],
-            sqliteDiffResult: "",
+            csvResults: [], //the sql and csv results after parsing, to be put in the tables
+            sqliteDiffResult: "", // the response on whether the results have any differences
             sqlFileName: "No file selected",
-            csvFileName: "No file selected",
-            diffBgColor: "black"
+            csvFileName: "No file selected", //The file name to be displayed under the file buttons
+            diffBgColor: "black" //the color of the text of the sqlite diff results
         }
         this.serverAddress = 'http://localhost:8080/';
         this.uploadFile = this.uploadFile.bind(this);
         this.submitButton = this.submitButton.bind(this);
     }
 
+    //the function to handle both buttons to upload sql and csv files (should separate logic, will do in future update)
+    //csv file is parsed locally while sql query is sent to server and the results are processed
     uploadFile(e, string) {
         try {
             let target = e.target;
             let file = target.files[0];
             let extension = file.name.split('.').pop();
 
+            //checks for sql button press and if the given button was supplied a file with .sql extension
             if (extension === "sql" && string === ".sql") {
                 this.setState(state => ({
                     sqlFile: file,
                     sqlLoading: true,
                     sqlFileName: file.name,
-                    result: "",
+                    sqliteDiffResult: "",
                     diffBgColor: "black"
                 }))
-                //api url 
+                //server query api url 
                 let apiURL = this.serverAddress + "chinook"
-                //make read only requests to sqlite database
+
+                //make read only requests to sqlite database, if the response is a success, update the state with the results
+                //else throw an error and have an alert message be displayed 
                 communicateWithBackEnd(apiURL + "", file)
                     .then(data => {
                         console.log(data.response);
@@ -92,14 +100,17 @@ class Body extends React.Component {
                             sqlLoading: false
                         }))
                     })
+            //checks for the csv button press and if the given button was supplied a file with .csv extension
             } else if (extension === "csv" && string === ".csv") {
                 this.setState(state => ({
                     csvFile: file,
                     csvLoading: true,
                     csvFileName: file.name,
-                    result: "",
+                    sqliteDiffResult: "",
                     diffBgColor: "black"
                 }));
+
+                //method to parse the given file, returning a promise that resolves into an array of results
                 csvToTable(file).then(output => {
                     this.setState(state => ({
                         csvLoading: false,
@@ -112,6 +123,7 @@ class Body extends React.Component {
                         csvLoading: false
                     }))
                 })
+            //if the buttons were pressed and aren't given their proper files (or null), reset the value displayed
             } else {
                 if (string === ".csv") {
                     this.setState(state => ({
@@ -126,36 +138,41 @@ class Body extends React.Component {
                 }
                 throw Error('Please input only sql and csv files in the correct slot! Thank you. :)');
             }
-        } catch (err) {
+        } catch (err) { //catch any overall errors and display an error message
             this.setState(state => ({
                 alertMessage: err.toString(),
                 alert: true,
                 sqlLoading: false,
                 csvLoading: false,
-                result: "",
+                sqliteDiffResult: "",
                 diffBgColor: "black"
             }))
         }
     }
 
+    //handles button press to compare the sql query results and csv results
+    //uses the JSON stringify method and compares the strings produced per row
     submitButton() {
         let validSQL = !(this.state.queryResults === undefined || this.state.queryResults.length === 0);
         let validCSV = !(this.state.csvResults === undefined || this.state.csvResults.length === 0);
+
         if (validSQL && validCSV) {
             this.setState(state => ({
                 loading: true //let the loading animation run
             }))
+
+            let result = ""; //string to be returned
+
             //compare results and output result
             let csvTableString = this.state.csvResults;
             let sqlTableString = this.state.queryResults;
-            let result = ""; //string to be returned
             
+            let failed = false; //boolean denoting if there was a mismatch
 
-            let failed = false;
             //if the lengths are different... reject
             if (csvTableString.length !== sqlTableString.length) {
                 result += "Different lengths of results. Check the csv and sql results for differences.\r\n"
-                + "The csv results have " + csvTableString.length +" rows. While sql results have " + sqlTableString.length + " rows.\r\n";
+                + "The csv results have " + csvTableString.length +" row(s). While sql results have " + sqlTableString.length + " row(s).\r\n";
                 failed = true;
             }
             
@@ -163,21 +180,23 @@ class Body extends React.Component {
             //iterate through the tables and check for mismatches, JSON stringify is used to compare, returns the row with an infraction if any
             for (i = 0; i < csvTableString.length && !failed; i++) {
                 if (JSON.stringify(sqlTableString[i]) !== JSON.stringify(csvTableString[i])) {
+                    console.log(JSON.stringify(sqlTableString[i]))
+                    console.log(JSON.stringify(csvTableString[i]))
                     failed = true;
                     result += "Different results at row " + i + ". Check the csv and sql results for differences.\r\n";
                     break;
                 }
             }
 
-            //if result has not be assigned anything, it's good to go!
+            //if failed is false, then its good to go! Mark the text green, otherwise mark it red.
             if (failed === false) {
                 result += "Query correctly reproduces answer files. Checked " + i + " rows. (Check for manual ordering!)\r\n";
                 this.setState(state => ({
-                    diffBgColor : "green"
+                    diffBgColor : "rgb(44, 161, 40)"
                 }))
             } else {
                 this.setState(state => ({
-                    diffBgColor : "red"
+                    diffBgColor : "rgb(170, 17, 17)"
                 }))
             }
 

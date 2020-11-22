@@ -23,16 +23,26 @@ app.get('/', function (req, res) {
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
+function toStrings(rows) {
+  rows.forEach(row => {
+    for(const key in row) {
+      row[key] = String(row[key]);
+    }
+  })
+}
+
 //post request here compares responds with json result from querying database
 app.post('/chinook', function(req, res) {
-  let sqlStatement = req.body;
-  db.all("SELECT * FROM Genre;", (err, rows) => {
+  let sqlStatement = req.body.queryString;
+  sqlStatement = sqlStatement.replace( /[\r\n]+/gm, " " );
+  db.all(sqlStatement, (err, rows) => {
     if(err) {
       res.json({
         status: 'failure',
         response: "Error! Invalid query. Please modify and try again."
       });
     } else {
+      toStrings(rows);
       res.json({
         status: 'success',
         response: rows

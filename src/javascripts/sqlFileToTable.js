@@ -4,10 +4,8 @@ export default function communicateWithBackEnd(serverAddress, file) {
         let reader = new FileReader();
         reader.readAsText(file);
         reader.onload = function (evt) {
-            let sqlString = evt.target.result;
-            let selectParam = getSelectParam(sqlString);
-            let fromParam = getFromParam(sqlString);
-            let 
+            let sqlString = evt.target.result; 
+            let data = {queryString : sqlString};
             fetch(serverAddress, {
                 method:'POST',
                 headers: {

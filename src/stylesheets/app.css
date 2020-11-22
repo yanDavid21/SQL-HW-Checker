@@ -54,6 +54,7 @@ html {
     display:flex;
     flex-direction: row;
     width:100%;
+    height:80%;
 }
 
 #query-results {
@@ -96,7 +97,7 @@ html {
 .table {
     min-height:500px;
     min-width:500px;
-    max-height:500px;
+    max-height:800px;
     overflow:auto;
     background-color:#cfcfcf;
     padding:1em;

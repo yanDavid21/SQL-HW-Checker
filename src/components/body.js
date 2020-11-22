@@ -45,11 +45,12 @@ class Body extends React.Component {
             loading: false,
             sqlFile: null,
             csvFile: null,
-            queryResults: [{ "sample-header": 1, "header-2": "David Yan" }, { "sample-header": 2, "header-2": "Saahil Kumar" }],
+            queryResults: [],
             csvResults: [],
             sqliteDiffResult: "",
             sqlFileName: "No file selected",
-            csvFileName: "No file selected"
+            csvFileName: "No file selected",
+            diffBgColor: "black"
         }
         this.serverAddress = 'http://localhost:8080/';
         this.uploadFile = this.uploadFile.bind(this);
@@ -66,26 +67,38 @@ class Body extends React.Component {
                 this.setState(state => ({
                     sqlFile: file,
                     sqlLoading: true,
-                    sqlFileName: file.name
+                    sqlFileName: file.name,
+                    result: "",
+                    diffBgColor: "black"
                 }))
+                //api url 
+                let apiURL = this.serverAddress + "chinook"
                 //make read only requests to sqlite database
-                communicateWithBackEnd(this.serverAddress, file)
-                .then(response => {
-                    this.setState(state => ({
-                        sqlLoading: false,
-                        queryResults: response,
-                    }))
-                }).catch(err => {
-                    this.setState(state => ({
-                        alertMessage: err.toString(),
-                        alert: true
-                    }))
-                })
+                communicateWithBackEnd(apiURL + "", file)
+                    .then(data => {
+                        console.log(data.response);
+                        if (data.status === "success") {
+                            this.setState(state => ({
+                                sqlLoading: false,
+                                queryResults: data.response
+                            }))
+                        } else {
+                            throw Error(data.response);
+                        }
+                    }).catch(err => {
+                        this.setState(state => ({
+                            alertMessage: err.toString(),
+                            alert: true,
+                            sqlLoading: false
+                        }))
+                    })
             } else if (extension === "csv" && string === ".csv") {
                 this.setState(state => ({
                     csvFile: file,
                     csvLoading: true,
-                    csvFileName: file.name
+                    csvFileName: file.name,
+                    result: "",
+                    diffBgColor: "black"
                 }));
                 csvToTable(file).then(output => {
                     this.setState(state => ({
@@ -95,7 +108,8 @@ class Body extends React.Component {
                 }).catch(err => {
                     this.setState(state => ({
                         alertMessage: err.toString(),
-                        alert: true
+                        alert: true,
+                        csvLoading: false
                     }))
                 })
             } else {
@@ -115,7 +129,11 @@ class Body extends React.Component {
         } catch (err) {
             this.setState(state => ({
                 alertMessage: err.toString(),
-                alert: true
+                alert: true,
+                sqlLoading: false,
+                csvLoading: false,
+                result: "",
+                diffBgColor: "black"
             }))
         }
     }
@@ -125,9 +143,48 @@ class Body extends React.Component {
         let validCSV = !(this.state.csvResults === undefined || this.state.csvResults.length === 0);
         if (validSQL && validCSV) {
             this.setState(state => ({
-                loading: true
+                loading: true //let the loading animation run
             }))
-           //compare results
+            //compare results and output result
+            let csvTableString = this.state.csvResults;
+            let sqlTableString = this.state.queryResults;
+            let result = ""; //string to be returned
+            
+
+            let failed = false;
+            //if the lengths are different... reject
+            if (csvTableString.length !== sqlTableString.length) {
+                result += "Different lengths of results. Check the csv and sql results for differences.\r\n"
+                + "The csv results have " + csvTableString.length +" rows. While sql results have " + sqlTableString.length + " rows.\r\n";
+                failed = true;
+            }
+            
+            let i; 
+            //iterate through the tables and check for mismatches, JSON stringify is used to compare, returns the row with an infraction if any
+            for (i = 0; i < csvTableString.length && !failed; i++) {
+                if (JSON.stringify(sqlTableString[i]) !== JSON.stringify(csvTableString[i])) {
+                    failed = true;
+                    result += "Different results at row " + i + ". Check the csv and sql results for differences.\r\n";
+                    break;
+                }
+            }
+
+            //if result has not be assigned anything, it's good to go!
+            if (failed === false) {
+                result += "Query correctly reproduces answer files. Checked " + i + " rows. (Check for manual ordering!)\r\n";
+                this.setState(state => ({
+                    diffBgColor : "green"
+                }))
+            } else {
+                this.setState(state => ({
+                    diffBgColor : "red"
+                }))
+            }
+
+            this.setState(state => ({
+                loading: false,
+                sqliteDiffResult: result
+            }))
         } else {
             this.setState(state => ({
                 alertMessage: "Are you sure you have uploaded both .sql and .csv files in the correct place?",
@@ -207,7 +264,7 @@ class Body extends React.Component {
                         <ResultComponent id="#query-results" name="Query results" results={this.state.queryResults} loading={this.state.sqlLoading} />
                         <ResultComponent id="csv-results" name="CSV results" results={this.state.csvResults} loading={this.state.csvLoading} />
                     </div>
-                    <SqliteDiffResult content={this.state.sqliteDiffResult} loading={this.state.loading}></SqliteDiffResult>
+                    <SqliteDiffResult content={this.state.sqliteDiffResult} loading={this.state.loading} bgColor={this.state.diffBgColor}></SqliteDiffResult>
                 </div>
             </div>
         );

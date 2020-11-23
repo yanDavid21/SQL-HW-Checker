@@ -6,6 +6,7 @@ const sqlite3 = require('sqlite3').verbose();
 const app = express();
 const portNumber = 8080; 
 
+//create a connection to the sqlite database, read only 
 const db = new sqlite3.Database(path.join(__dirname, '/Chinook_Sqlite_AutoIncrementPKs.sqlite'), sqlite3.OPEN_READONLY, (err) => {
   if (err) {
     console.error("Failed to connect to database.");
@@ -23,6 +24,7 @@ app.get('/', function (req, res) {
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
+//converts arrays of objects to arrays of objects with all values being a String
 function toStrings(rows) {
   rows.forEach(row => {
     for(const key in row) {
@@ -57,7 +59,7 @@ console.log("Server currently running off " + portNumber + "...");
 // opens the url in the default browser 
 open('http://localhost:' + portNumber);
 
-//ensures proper database cleanup
+//ensures proper database cleanup on exits
 [`SIGINT`, `SIGUSR1`, `SIGUSR2`, `uncaughtException`, `SIGTERM`].forEach((eventType) => {
   process.on(eventType, () => {
     console.log("Terminating connection to database...");

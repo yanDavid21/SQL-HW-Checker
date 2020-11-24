@@ -15,9 +15,9 @@ This project contains both a server and the static files that are served, downlo
     1.) Install NodeJS to run the javascript based back-end
     2.) Download the project from the GitHub
     3.) Navigate to the newly downloaded project folder in the terminal
-    4.) Use the command "node server.js" 
-    5.) This command creates the server process and opens the default browser to the server (localhost:8080)
-    6.) Upload your .sql and .csv files then hit compare
+    4.) Use the command "npm run start-server"
+    5.) This command creates the server process and creates an optimized build for the files to be served. This also opens the default browser to the server (localhost:8080).
+    6.) Upload your .sql and .csv files then hit the compare button.
 
 ## Future plans
 -Testing -Media queries for different screen widths -Implement Redux

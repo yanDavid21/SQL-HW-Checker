@@ -1,4 +1,5 @@
-
+//makes a post request to the backend to get the query results from the given file
+//returns the data that was sent in response from the server
 export default function communicateWithBackEnd(serverAddress, file) {
     const sqlPromise = new Promise((resolve, reject) => {
         let reader = new FileReader();

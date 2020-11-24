@@ -33,10 +33,12 @@ function toStrings(rows) {
   })
 }
 
-//post request here compares responds with json result from querying database
+//handles post requests to /chinook, given a sql string and runs it in the database
+//returns json response of rows of objects representing the rows of the query result, if any
+//otherwise return a json response with an error message
 app.post('/chinook', function(req, res) {
   let sqlStatement = req.body.queryString;
-  sqlStatement = sqlStatement.replace( /[\r\n]+/gm, " " );
+  sqlStatement = sqlStatement.replace( /[\r\n]+/gm, " " ); //this removes any newline characters or returns
   db.all(sqlStatement, (err, rows) => {
     if(err) {
       res.json({
@@ -72,6 +74,7 @@ open('http://localhost:' + portNumber);
   });
 })
 
+//on exit print to console that server is terminating 
 process.on('exit', (code) => {
   console.log("Terminating server on code " + code);
 })

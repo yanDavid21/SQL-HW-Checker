@@ -17,6 +17,9 @@ html {
     padding:.5em;
     border-width:1px;
     border-style:solid;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .left-panel {

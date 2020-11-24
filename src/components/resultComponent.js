@@ -9,12 +9,15 @@ import Paper from '@material-ui/core/Paper';
 import Divider from '@material-ui/core/Divider';
 import CircularProgress from '@material-ui/core/CircularProgress';
 
-
+//react component that holds tables, the tables will be automatically populated when data 
+//in the format of an array of objects, and every key of an object will be made into a column header
 export default function resultComponent(props) {
 
     let columnHeaders = new Set();
     let arrColumnHeaders = [];
 
+    //renders the column headers for the table by extracting all keys from all objects
+    //returns an array of table cells containing the column header
     function renderColumns(results) {
         results.forEach(result => {
             for (const key in result) {
@@ -35,6 +38,7 @@ export default function resultComponent(props) {
         );
     }
 
+    //renders the rows, return a row of table cells for every header return the value where the object's key matches the header
     function renderRows(results) {
         return (results.map((result, index) => {
             let arrCells = [];
@@ -45,6 +49,7 @@ export default function resultComponent(props) {
         }));
     }
 
+    //if the props.loading returns true, then have a loading animation, otherwise have a table there
     let content = props.loading ? <div className="spin-Container"><CircularProgress /> </div>:
         <TableContainer component={Paper}>
             <Table aria-label="simple table">

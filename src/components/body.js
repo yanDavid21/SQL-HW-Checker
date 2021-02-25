@@ -84,7 +84,6 @@ class Body extends React.Component {
                 //else throw an error and have an alert message be displayed 
                 communicateWithBackEnd(apiURL + "", file)
                     .then(data => {
-                        console.log(data.response);
                         if (data.status === "success") {
                             this.setState(state => ({
                                 sqlLoading: false,
@@ -180,8 +179,6 @@ class Body extends React.Component {
             //iterate through the tables and check for mismatches, JSON stringify is used to compare, returns the row with an infraction if any
             for (i = 0; i < csvTableString.length && !failed; i++) {
                 if (JSON.stringify(sqlTableString[i]) !== JSON.stringify(csvTableString[i])) {
-                    console.log(JSON.stringify(sqlTableString[i]))
-                    console.log(JSON.stringify(csvTableString[i]))
                     failed = true;
                     result += "Different results at row " + i + ". Check the csv and sql results for differences.\r\n";
                     break;

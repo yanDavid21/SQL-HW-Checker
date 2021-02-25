@@ -12,6 +12,8 @@ Another example, the following picture shows when the query and csv results diff
 ## How to use
 This project contains both a server and the static files that are served, downloading both allows it to be used locally. Running the server should produce the files that will interact with the server which then interacts with the SQLite database. 
 
+Currently available at : https://warm-sea-15269.herokuapp.com/.
+
     1.) Install NodeJS to run the javascript based back-end
     2.) Download the project from the GitHub
     3.) Navigate to the newly downloaded project folder in the terminal

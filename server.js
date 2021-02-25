@@ -56,12 +56,7 @@ app.post('/chinook', function(req, res) {
 })
 
 app.listen(process.env.PORT || portNumber);
-console.log("Server currently running off " + portNumber + "...");
-
-// opens the url in the default browser 
-if (!process.env.PORT) {
-  open('http://localhost:' + portNumber);
-} 
+console.log("Server currently running...");
 
 //ensures proper database cleanup on exits
 [`SIGINT`, `SIGUSR1`, `SIGUSR2`, `uncaughtException`, `SIGTERM`].forEach((eventType) => {

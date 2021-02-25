@@ -55,7 +55,7 @@ app.post('/chinook', function(req, res) {
   })
 })
 
-app.listen(portNumber);
+app.listen(process.env.PORT || 5000);
 console.log("Server currently running off " + portNumber + "...");
 
 // opens the url in the default browser 

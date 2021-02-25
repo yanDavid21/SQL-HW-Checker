@@ -55,7 +55,7 @@ class Body extends React.Component {
             csvFileName: "No file selected", //The file name to be displayed under the file buttons
             diffBgColor: "black" //the color of the text of the sqlite diff results
         }
-        this.serverAddress = 'http://localhost:8080/';
+        this.serverAddress = 'https://warm-sea-15269.herokuapp.com/';
         this.uploadFile = this.uploadFile.bind(this);
         this.submitButton = this.submitButton.bind(this);
     }

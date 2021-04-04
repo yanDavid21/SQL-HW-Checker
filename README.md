@@ -1,6 +1,6 @@
 # SQLite Diff Web Application
 
-Currently available at : https://warm-sea-15269.herokuapp.com/.
+Currently available at : https://sql-hw-checker.herokuapp.com/.
 
 This web application was made with Northeastern University Database Design course (CS3200) in mind. SQLite Diff was a program written by Professor Derbinsky to let students check their SQL homeworks, by comparing their query results with an answer csv file. This web application was created to be an more streamlined UI than the terminal of which the original program ran in. This project was a wonderful learning experience and a nice introduction to new techonologies. This project was made with ReactJS front-end with MaterialUI styling and a NodeJS back-end.
 

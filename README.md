@@ -24,4 +24,4 @@ This project contains both a server and the static files that are served, downlo
     6.) Upload your .sql and .csv files then hit the compare button.
 
 ## Future plans
--Testing -Media queries for different screen widths -Implement Redux
+-Testing -Implement Redux

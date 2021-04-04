@@ -6,20 +6,20 @@ html {
     display:flex;
     flex-direction: column;
     margin: 0px;
-    min-width:800px;
 }
+
 
 .header {
     background-color: #06559e;
     color:white;
-    font-size:3em;
-    height: 10vh;
-    padding:.5em;
     border-width:1px;
     border-style:solid;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    font-size:3em;
+    height: 10vh;
+    padding:.5em;
 }
 
 .left-panel {
@@ -29,7 +29,6 @@ html {
     align-items:center;
     background-color:#0a70ac;
     color:white; 
-    overflow:auto;
     border-width:1px;
     border-style:solid;
     font-size:1.25em;
@@ -50,22 +49,7 @@ html {
 
 .main-body {
     display:flex;
-    height:90vh;
-}
-
-.results {
-    display:flex;
-    flex-direction: row;
-    width:100%;
-    height:80%;
-}
-
-#query-results {
-    margin-right:1em;
-}
-
-#csv-results {
-    margin-left:1em;
+    min-height:90vh;
 }
 
 .sql-diff{
@@ -78,20 +62,10 @@ html {
     border-color:black;
     height:100%;
     font-size: 1.5em;
+    min-height:300px;
+    max-height:800px;
 }
 
-
-.form-group {
-    display:flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding:2em;
-    background-color: white;
-    color:#007fe6;
-    border-radius: 2em;
-    overflow:hidden;
-}
 
 .form-group > * {
     margin-bottom:1em;
@@ -99,7 +73,6 @@ html {
 
 .table {
     min-height:500px;
-    min-width:500px;
     max-height:800px;
     overflow:auto;
     background-color:#cfcfcf;
@@ -112,4 +85,100 @@ html {
     align-items: center;
     width:100%;
     height: 100%;
+}
+
+.results {
+    display:flex;
+    width:100%;
+    height:80%;
+}
+
+/* Extra small devices (phones, 600px and down) */
+@media only screen and (max-width: 600px) {
+    .main-body {
+        flex-direction:column
+    }
+
+    .form-group {
+        display:flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding:2em;
+        background-color: white;
+        color:#007fe6;
+        border-radius: 2em;
+    }
+    #query-results {
+        margin-right:.25em;
+    }
+    
+    #csv-results {
+        margin-left:.25em;
+    }
+    
+    .results {
+        flex-direction: column;
+    }
+}
+
+/* Small devices (portrait tablets and large phones, 600px and up) */
+@media only screen and (min-width: 600px) {
+    .main-body {
+        flex-direction:column
+    }
+
+    .form-group {
+        display:flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding:2em;
+        background-color: white;
+        color:#007fe6;
+        border-radius: 2em;
+        overflow:hidden;
+        width:75%;
+    }
+
+    .results {
+        flex-direction: column;
+    }
+    
+
+    #query-results {
+        margin-right:.5em;
+    }
+    
+    #csv-results {
+        margin-left:.5em;
+    }
+   
+}
+
+/* Medium devices (landscape tablets, 768px and up) */
+@media only screen and (min-width: 768px) {
+    
+}
+
+/* Large devices (laptops/desktops, 992px and up) */
+@media only screen and (min-width: 992px) {
+    .results {
+        flex-direction: row;
+    }
+}
+
+/* Extra large devices (large laptops and desktops, 1200px and up) */
+@media only screen and (min-width: 1200px) {
+    .main-body {
+        flex-direction:row
+    }
+
+    #query-results {
+        margin-right:1em;
+    }
+    
+    #csv-results {
+        margin-left:1em;
+    }
 }

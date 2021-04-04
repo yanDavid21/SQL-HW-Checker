@@ -25,13 +25,10 @@ const useStyles = theme => ({
         "background-color": "rgb(44, 161, 40)",
     },
     paper: {
-        position: 'absolute',
-        width: 400,
         backgroundColor: theme.palette.background.paper,
         border: '2px solid #000',
         boxShadow: theme.shadows[5],
         padding: theme.spacing(2, 4, 3),
-        transform: `translate(50%, 50%)`,
     },
 });
 
@@ -55,7 +52,7 @@ class Body extends React.Component {
             csvFileName: "No file selected", //The file name to be displayed under the file buttons
             diffBgColor: "black" //the color of the text of the sqlite diff results
         }
-        this.serverAddress = 'https://warm-sea-15269.herokuapp.com/';
+        this.serverAddress = 'https://sql-hw-checker.herokuapp.com/';
         this.uploadFile = this.uploadFile.bind(this);
         this.submitButton = this.submitButton.bind(this);
     }

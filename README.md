@@ -22,6 +22,3 @@ This project contains both a server and the static files that are served, downlo
     4.) Use the command "npm run start-server"
     5.) This command creates the server process and creates an optimized build for the files to be served. This also opens the default browser to the server (localhost:8080).
     6.) Upload your .sql and .csv files then hit the compare button.
-
-## Future plans
--Testing -Implement Redux
